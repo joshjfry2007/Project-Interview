@@ -1,38 +1,33 @@
-function addScore(bucket, name, value) {
-    if (!bucket[name]) bucket[name] = { total: 0, count: 0 };
-    bucket[name].total += value;
-    bucket[name].count += 1;
+import { summarizeHistory } from "../summary.js";
+
+function Summary({ history }) {
+    const summary = summarizeHistory(history);
+
+    return (
+        <div>
+            <h2>Summary</h2>
+            <h3>Overall Scores</h3>
+            <ul>
+                {Object.entries(summary.overall).map(([name, value]) => (
+                    <li key={name}>{name}: {value.toFixed(2)}/10</li>
+                ))}
+            </ul>
+
+            <h3>Scores by Category</h3>
+            <ul>
+                {Object.entries(summary.byCategory).map(([category, scores]) => (
+                    <li key={category}>
+                        <strong>{category}</strong>
+                        <ul>
+                            {Object.entries(scores).map(([name, value]) => (
+                                <li key={name}>{name}: {value.toFixed(2)}/10</li>
+                            ))}
+                        </ul>
+                    </li>
+                ))}
+            </ul>
+        </div>
+    );
 }
 
-function averages(bucket) {
-    const result = {};
-    for (const [key, value] of Object.entries(bucket)) {
-        result[key] = value.total / value.count;
-    }
-    return result;
-}
-
-function summarizeHistory(history) {
-    const overall = {};
-    const byCategory = {};
-
-    for (const entry of history) {
-        if (!byCategory[entry.category]) {
-            byCategory[entry.category] = {};
-        }
-
-        for (const [key, value] of Object.entries(entry.x.scores || {})) {
-            addScore(overall, key, value);
-            addScore(byCategory[entry.category], key, value);
-        }
-    }
-
-    const categoryAverages = {};
-    for (const [key, value] of Object.entries(byCategory)) {
-        categoryAverages[key] = averages(value);
-    }
-
-    return { overall: averages(overall), byCategory: categoryAverages };
-}
-
-export { summarizeHistory };
+export {Summary};

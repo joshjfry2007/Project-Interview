@@ -2,6 +2,7 @@ import { useState } from "react";
 import questions from "../data/question.js";
 import { submitAnswer } from "../services/InterviewAPI.js";
 import HistoryEntry from "./historyEntry.jsx";
+import { Summary } from "./summary.jsx";
 
 
 function Display() {
@@ -15,6 +16,7 @@ function Display() {
     const [questionFinished, setQuestionFinished] = useState(false);
 
     const isLastQuestion = questionIndex === questions.length - 1;
+    const interviewFinished = isLastQuestion && questionFinished;
 
     const handleSubmit = async () => {
         if (answer.trim().length === 0 || loading) return;
@@ -22,7 +24,7 @@ function Display() {
         setError(null);
 
         try {
-            const x = await submitAnswer({ ...questions[questionIndex], text: currentPrompt }, answer);
+            const feedback = await submitAnswer({ ...questions[questionIndex], text: currentPrompt }, answer);
             
             setHistory((prev) => [
                 ...prev, 
@@ -31,12 +33,12 @@ function Display() {
                     question: currentPrompt, 
                     answer, 
                     category: questions[questionIndex].category, 
-                    feedback: x 
+                    feedback: feedback 
                 }
             ]);
 
-            if (followUpsUsed < 1 && x?.followUp) {
-                setCurrentPrompt(x.followUp);
+            if (followUpsUsed < 1 && feedback?.followUp) {
+                setCurrentPrompt(feedback.followUp);
                 setFollowUpsUsed((n) => n + 1);
             } else {
                 setQuestionFinished(true);
@@ -61,36 +63,40 @@ function Display() {
     };
 
     return (
+        
         <div id="entireQuestionScreen">
             <div id="questionBox">
                 <h1>Question : {currentPrompt}</h1>
 
                 {!questionFinished ? (
                     <>
-                        <textarea value={answer} onChange={(e) => setAnswer(e.target.value)} />
-                        <button disabled={answer.trim().length === 0 || loading} onClick={handleSubmit}>
+                        <textarea id="answer" value={answer} onChange={(e) => setAnswer(e.target.value)} />
+                        <button id="submitbtn" disabled={answer.trim().length === 0 || loading} onClick={handleSubmit}>
                             {loading ? "L O A D I N G" : "S U B M I T"}
                         </button>
                     </>
                 ) : (
                     <p>{isLastQuestion ? "Interview complete." : "Question complete. Press Next Question to continue."}</p>
+                    
                 )}
 
                 {error && <p>{error}</p>}
-
-                {history.length > 0 && <h2>Previous answers</h2>}
-
-                {history.slice().reverse().map((entry, index) => (
-                    <HistoryEntry key={entry.id} entry={entry} defaultOpen={index === 0} />
-                ))}
+                {interviewFinished && <Summary history={history} />}
+                <div id="history">
+                    {history.length > 0 && <h2>Previous answers</h2>}
+                    {history.slice().reverse().map((entry, index) => (
+                        <HistoryEntry key={entry.id} entry={entry} defaultOpen={index === 0} />
+                    ))}
+                </div>
             </div>
 
             <div id="questionSecondary">
-                <p>{questions[questionIndex].id}</p>
-                <p>{questions[questionIndex].category}</p>
+                <p id="index">Q.No. {questions[questionIndex].id}</p>
+                <p id="category" >{questions[questionIndex].category}</p>
                 <button onClick={handleNextQuestion} disabled={isLastQuestion || loading}>
                     Next Question
                 </button>
+                {}
             </div>
         </div>
     );
