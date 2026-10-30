@@ -1,6 +1,8 @@
 import { useState } from "react";
-import  questions  from "../data/question.js";
+import questions from "../data/question.js";
 import { submitAnswer } from "../services/InterviewAPI.js";
+import HistoryEntry from "./historyEntry.jsx";
+
 
 function Display() {
     const [questionIndex, setQuestionIndex] = useState(0);
@@ -8,30 +10,38 @@ function Display() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [history, setHistory] = useState([]);
-    const [currentPromt, setCurrentPrompt] = useState("");
+    const [currentPrompt, setCurrentPrompt] = useState(questions[0].text);
     const [followUpsUsed, setFollowUpsUsed] = useState(0);
     const [questionFinished, setQuestionFinished] = useState(false);
 
+    const isLastQuestion = questionIndex === questions.length - 1;
 
     const handleSubmit = async () => {
-        if(answer.trim().length === 0) return;
-        if(loading) return;
+        if (answer.trim().length === 0 || loading) return;
         setLoading(true);
         setError(null);
 
-        try{
-            const x = await submitAnswer(questions[questionIndex], answer);
-            setHistory([...history, {id: crypto.randomUUID(),question : currentPromt, answer, x}]);
-            if(followUpsUsed < 1 && x.followUp){
+        try {
+            const x = await submitAnswer({ ...questions[questionIndex], text: currentPrompt }, answer);
+            
+            setHistory((prev) => [
+                ...prev, 
+                { 
+                    id: crypto.randomUUID(), 
+                    question: currentPrompt, 
+                    answer, 
+                    category: questions[questionIndex].category, 
+                    feedback: x 
+                }
+            ]);
+
+            if (followUpsUsed < 1 && x?.followUp) {
                 setCurrentPrompt(x.followUp);
-                setFollowUpsUsed(followUpsUsed + 1);
-                setAnswer("");
-            }
-            else{
+                setFollowUpsUsed((n) => n + 1);
+            } else {
                 setQuestionFinished(true);
-                setFollowUpsUsed(0);
-                setAnswer("");
             }
+            setAnswer("");
         } catch (err) {
             setError(err.message || "Unable to score your answer. Please try again.");
         } finally {
@@ -40,60 +50,45 @@ function Display() {
     };
 
     const handleNextQuestion = () => {
-        if (questionIndex > questions.length - 1) return;
-        setQuestionIndex(questionIndex + 1);
-        setCurrentPrompt(questions[questionIndex + 1].text);
+        if (questionIndex >= questions.length - 1) return;
+        const nextIndex = questionIndex + 1;
+        setQuestionIndex(nextIndex);
+        setCurrentPrompt(questions[nextIndex].text);
         setAnswer("");
         setFollowUpsUsed(0);
+        setQuestionFinished(false);
         setError(null);
-    }
+    };
 
     return (
         <div id="entireQuestionScreen">
             <div id="questionBox">
-                <h1>Question : {currentPromt}</h1>
+                <h1>Question : {currentPrompt}</h1>
 
-                {history.map((entry) => (
-                <div key={entry.id}>
-                    <h3>{entry.question}</h3>
-                    <p><strong>Your answer:</strong> {entry.answer}</p>
+                {!questionFinished ? (
+                    <>
+                        <textarea value={answer} onChange={(e) => setAnswer(e.target.value)} />
+                        <button disabled={answer.trim().length === 0 || loading} onClick={handleSubmit}>
+                            {loading ? "L O A D I N G" : "S U B M I T"}
+                        </button>
+                    </>
+                ) : (
+                    <p>{isLastQuestion ? "Interview complete." : "Question complete. Press Next Question to continue."}</p>
+                )}
 
-                    <h4>Scores</h4>
-                    {Object.entries(entry.x.scores || {}).map(
-                        ([name, value]) => (
-                            <p key={name}>{name}: {value}/10</p>
-                        )
-                    )}
-
-                    <h4>Evidence</h4>
-                    {Array.isArray(entry.x.evidence) ? (
-                        entry.x.evidence.map((item, index) => (
-                            <p key={`${entry.id}-evidence-${index}`}>{item.quote} — {item.comment}</p>
-                        ))
-                    ) : (
-                        <p>{entry.x.evidence}</p>
-                    )}
-                    <hr />
-                </div>
-                ))}
-
-                <textarea
-                    value={answer}
-                    onChange={(e) => setAnswer(e.target.value)}
-                ></textarea>
-                <button disabled={answer.trim().length === 0 || loading} onClick={handleSubmit}>
-                    {loading ? "L O A D I N G" : "S U B M I T"}
-                </button>
                 {error && <p>{error}</p>}
+
+                {history.length > 0 && <h2>Previous answers</h2>}
+
+                {history.slice().reverse().map((entry, index) => (
+                    <HistoryEntry key={entry.id} entry={entry} defaultOpen={index === 0} />
+                ))}
             </div>
 
             <div id="questionSecondary">
                 <p>{questions[questionIndex].id}</p>
                 <p>{questions[questionIndex].category}</p>
-                <button
-                    onClick={handleNextQuestion}
-                    disabled={questionIndex === questions.length - 1 || loading}
-                >
+                <button onClick={handleNextQuestion} disabled={isLastQuestion || loading}>
                     Next Question
                 </button>
             </div>
