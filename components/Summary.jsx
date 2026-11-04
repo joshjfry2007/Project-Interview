@@ -1,4 +1,4 @@
-import { summarizeHistory } from "../summary.js";
+import { summarizeHistory } from "@/lib/summary";
 
 function Summary({ history }) {
     const summary = summarizeHistory(history);

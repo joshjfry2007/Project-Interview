@@ -1,13 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import questions from "../data/question.js";
-import { submitAnswer } from "../services/InterviewAPI.js";
-import HistoryEntry from "./historyEntry.jsx";
-import { Summary } from "./Summary.jsx";
+import questions from "@/data/question";
+import { submitAnswer } from "@/lib/interviewApi";
+import HistoryEntry from "@/components/HistoryEntry";
+import { Summary } from "@/components/Summary";
 
 
-function Display() {
+function QuestionScreen() {
     const [questionIndex, setQuestionIndex] = useState(0);
     const [answer, setAnswer] = useState("");
     const [loading, setLoading] = useState(false);
@@ -104,4 +104,4 @@ function Display() {
     );
 }
 
-export default Display;
+export default QuestionScreen;
