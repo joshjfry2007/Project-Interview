@@ -1,8 +1,10 @@
+"use client";
+
 import { useState } from "react";
 import questions from "../data/question.js";
 import { submitAnswer } from "../services/InterviewAPI.js";
 import HistoryEntry from "./historyEntry.jsx";
-import { Summary } from "./summary.jsx";
+import { Summary } from "./Summary.jsx";
 
 
 function Display() {
