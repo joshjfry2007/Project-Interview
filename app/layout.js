@@ -1,4 +1,4 @@
-import "../src/index.css";
+import "./globals.css";
 import Link from "next/link";
 
 export const metadata = {
@@ -10,9 +10,9 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body>
-        <nav className="flex items-center justify-between px-6 py-4 bg-gray-900/90 backdrop-blur text-white shadow-md sticky top-0 z-50">
+        <nav className="flex items-center justify-between px-6 py-4 bg-gray-900/90 text-white shadow-md sticky top-0 z-50">
           <div className="font-bold text-lg tracking-wide">
-            <Link href="/" className="hover:text-yellow-400 transition-colors">
+            <Link href="/interview" className="hover:text-yellow-400 transition-colors">
               Project Interview
             </Link>
           </div>

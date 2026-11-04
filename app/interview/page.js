@@ -1,9 +1,5 @@
-import Display from "../../src/components/questionScreen.jsx";
-
-export const metadata = {
-  title: "Interview | Project Interview",
-};
+import QuestionScreen from "@/components/QuestionScreen";
 
 export default function InterviewPage() {
-  return <Display />;
+  return <QuestionScreen />;
 }

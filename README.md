@@ -1,16 +1,78 @@
-# React + Vite
+# Project Interview
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+An interactive interview preparation web application migrated to Next.js using the App Router, Tailwind CSS, and React client components.
 
-Currently, two official plugins are available:
+## Status
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Migrated from Vite + React to Next.js (App Router) with full support for client-side state management, Tailwind CSS styling, and structured routing.
 
-## React Compiler
+## What Works
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **Interactive Interview Route (`/interview`)**:
+  - Displays questions across Behavioral, Technical Depth, and Communication categories.
+  - Submits answers with simulated AI feedback, scoring (clarity, correctness, confidence), and quote evidence.
+  - Dynamically presents follow-up questions when returned by the API.
+  - Expandable history drawer for reviewing previous answers, feedback, and scores in the session.
+  - Comprehensive session summary screen displaying overall and per-category score averages once the interview is completed.
+- **Routing & Navigation**:
+  - Automatic redirect from root (`/`) to `/interview`.
+  - Placeholder routes ready for `/history` and `/heatmap`.
+  - Responsive global navigation bar in `app/layout.js`.
+- **Styling**:
+  - Tailwind CSS combined with custom CSS animations (including glowing rotating button border gradients).
 
-## Expanding the ESLint configuration
+## Planned Work
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- Persistent history storage (localStorage or backend database) for interview sessions.
+- Full activity heatmap on `/heatmap` to visualize daily interview practice consistency.
+- Real LLM integration for dynamic feedback and evaluation.
+- Timer mode and mock interview recording options.
+
+## Project Structure
+
+```
+app/
+  layout.js          # Root layout with global navigation & metadata
+  globals.css        # Tailwind directives + custom application styles
+  page.js            # Redirects to /interview
+  interview/page.js  # Main interview page
+  history/page.js    # History placeholder route
+  heatmap/page.js    # Heatmap placeholder route
+components/
+  QuestionScreen.jsx # Client component managing interview flow & state
+  HistoryEntry.jsx   # Collapsible details entry for past answers
+  Summary.jsx        # Overall & category average score summary
+data/
+  question.js        # Question bank categorized by topic
+lib/
+  interviewApi.js    # Simulated answer scoring & evaluation API
+  summary.js         # Score calculation & aggregation utilities
+```
+
+## How to Run
+
+1. **Install dependencies**:
+   ```bash
+   npm install
+   ```
+
+2. **Run development server**:
+   ```bash
+   npm run dev
+   ```
+   Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+3. **Lint code**:
+   ```bash
+   npm run lint
+   ```
+
+4. **Build for production**:
+   ```bash
+   npm run build
+   ```
+
+5. **Start production server**:
+   ```bash
+   npm run start
+   ```
