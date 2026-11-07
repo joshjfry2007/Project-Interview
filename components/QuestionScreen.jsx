@@ -1,104 +1,73 @@
 "use client";
 
-import { useState } from "react";
-import questions from "@/data/question";
-import { submitAnswer } from "@/lib/interviewApi";
 import HistoryEntry from "@/components/HistoryEntry";
 import { Summary } from "@/components/Summary";
-
+import { useInterview } from "@/hooks/useInterview";
 
 function QuestionScreen() {
-    const [questionIndex, setQuestionIndex] = useState(0);
-    const [answer, setAnswer] = useState("");
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
-    const [history, setHistory] = useState([]);
-    const [currentPrompt, setCurrentPrompt] = useState(questions[0].text);
-    const [followUpsUsed, setFollowUpsUsed] = useState(0);
-    const [questionFinished, setQuestionFinished] = useState(false);
+    const {
+        questions,
+        questionIndex,
+        answer,
+        setAnswer,
+        isSubmitting,
+        error,
+        history,
+        currentPrompt,
+        questionFinished,
+        isLastQuestion,
+        interviewFinished,
+        handleSubmit,
+        handleNextQuestion,
+        startNewSession,
+    } = useInterview();
 
-    const isLastQuestion = questionIndex === questions.length - 1;
-    const interviewFinished = isLastQuestion && questionFinished;
-
-    const handleSubmit = async () => {
-        if (answer.trim().length === 0 || loading) return;
-        setLoading(true);
-        setError(null);
-
-        try {
-            const feedback = await submitAnswer({ ...questions[questionIndex], text: currentPrompt }, answer);
-            
-            setHistory((prev) => [
-                ...prev, 
-                { 
-                    id: crypto.randomUUID(), 
-                    question: currentPrompt, 
-                    answer, 
-                    category: questions[questionIndex].category, 
-                    feedback: feedback 
-                }
-            ]);
-
-            if (followUpsUsed < 1 && feedback?.followUp) {
-                setCurrentPrompt(feedback.followUp);
-                setFollowUpsUsed((n) => n + 1);
-            } else {
-                setQuestionFinished(true);
-            }
-            setAnswer("");
-        } catch (err) {
-            setError(err.message || "Unable to score your answer. Please try again.");
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleNextQuestion = () => {
-        if (questionIndex >= questions.length - 1) return;
-        const nextIndex = questionIndex + 1;
-        setQuestionIndex(nextIndex);
-        setCurrentPrompt(questions[nextIndex].text);
-        setAnswer("");
-        setFollowUpsUsed(0);
-        setQuestionFinished(false);
-        setError(null);
-    };
+    if (interviewFinished) {
+        return (
+            <div id="entireQuestionScreen">
+                <div id="questionBox">
+                    <Summary history={history} onStartNewSession={startNewSession} />
+                </div>
+            </div>
+        );
+    }
 
     return (
-        
         <div id="entireQuestionScreen">
             <div id="questionBox">
                 <h1>Question : {currentPrompt}</h1>
 
                 {!questionFinished ? (
                     <>
-                        <textarea id="answer" value={answer} onChange={(e) => setAnswer(e.target.value)} />
-                        <button id="submitbtn" disabled={answer.trim().length === 0 || loading} onClick={handleSubmit}>
-                            {loading ? "L O A D I N G" : "S U B M I T"}
+                        <textarea id="answer" value={answer} onChange={(e) => setAnswer(e.target.value)} disabled={isSubmitting} />
+                        <button id="submitbtn" disabled={answer.trim().length === 0 || isSubmitting} onClick={handleSubmit}>
+                            {isSubmitting ? "EVALUATING..." : "S U B M I T"}
                         </button>
                     </>
                 ) : (
-                    <p>{isLastQuestion ? "Interview complete." : "Question complete. Press Next Question to continue."}</p>
-                    
+                    <p>{isLastQuestion ? "Interview complete. Preparing your summary..." : "Question complete. Press Next Question to continue."}</p>
                 )}
 
-                {error && <p>{error}</p>}
-                {interviewFinished && <Summary history={history} />}
+                {isSubmitting && <p role="status" aria-live="polite">Your answer is being evaluated. Please wait...</p>}
+
+                {error && <p role="alert" className="text-red-700">{error}</p>}
+
                 <div id="history">
                     {history.length > 0 && <h2>Previous answers</h2>}
+
                     {history.slice().reverse().map((entry, index) => (
                         <HistoryEntry key={entry.id} entry={entry} defaultOpen={index === 0} />
                     ))}
                 </div>
             </div>
 
-            <div id="questionSecondary">
+            <div id="questionSecondary" className="ml-3">
                 <p id="index">Q.No. {questions[questionIndex].id}</p>
-                <p id="category" >{questions[questionIndex].category}</p>
-                <button onClick={handleNextQuestion} disabled={isLastQuestion || loading}>
+                <p id="category">{questions[questionIndex].category}</p>
+
+                <button onClick={handleNextQuestion} disabled={!questionFinished || isLastQuestion || isSubmitting} className="bg-[#5F9EA0] p-1 text-black hover:bg-[#4F8A8B] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed">
                     Next Question
                 </button>
-                {}
             </div>
         </div>
     );
