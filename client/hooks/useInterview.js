@@ -1,6 +1,5 @@
 "use client";
 
-
 import { useState } from "react";
 import questions from "@/data/question";
 import { isValidInterviewFeedback } from "@/data/interviewContract";
@@ -22,16 +21,22 @@ export function useInterview() {
 
     // Submit the current answer
     const handleSubmit = async () => {
-        if (answer.trim().length === 0 || isSubmitting || questionFinished) return;
+        if (answer.trim().length === 0 || isSubmitting || questionFinished)
+            return;
 
         setIsSubmitting(true);
         setError(null);
 
         try {
-            const feedback = await submitAnswer({ ...questions[questionIndex], text: currentPrompt }, answer);
+            const feedback = await submitAnswer(
+                { ...questions[questionIndex], text: currentPrompt },
+                answer,
+            );
 
             if (!isValidInterviewFeedback(feedback)) {
-                throw new Error("The evaluator returned feedback in an unexpected format. Please try again.");
+                throw new Error(
+                    "The evaluator returned feedback in an unexpected format. Please try again.",
+                );
             }
 
             setHistory((prev) => [
@@ -41,8 +46,8 @@ export function useInterview() {
                     question: currentPrompt,
                     answer,
                     category: questions[questionIndex].category,
-                    feedback
-                }
+                    feedback,
+                },
             ]);
 
             if (followUpsUsed < 1 && feedback.followUp) {
@@ -53,9 +58,10 @@ export function useInterview() {
             }
 
             setAnswer("");
-
         } catch (err) {
-            setError(err.message || "Unable to score your answer. Please try again.");
+            setError(
+                err.message || "Unable to score your answer. Please try again.",
+            );
         } finally {
             setIsSubmitting(false);
         }
@@ -102,6 +108,6 @@ export function useInterview() {
         interviewFinished,
         handleSubmit,
         handleNextQuestion,
-        startNewSession
+        startNewSession,
     };
 }
